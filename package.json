@@ -1,0 +1,33 @@
+{
+  "name": "rdex-dashboard",
+  "version": "1.0.0",
+  "description": "A Firefox extension that transforms your new tab page into a beautiful, minimal dashboard",
+  "main": "src/js/background.js",
+  "scripts": {
+    "build": "mkdir -p dist && cp -r manifest.json icons src LICENSE README.md dist/",
+    "test": "web-ext lint",
+    "start:firefox": "web-ext run --source-dir=./",
+    "lint": "web-ext lint",
+    "package": "web-ext build"
+  },
+  "keywords": [
+    "webextension",
+    "firefox",
+    "dashboard",
+    "new-tab",
+    "productivity"
+  ],
+  "author": "RDEX Dashboard Contributors",
+  "homepage": "https://github.com/yourusername/rdex-dashboard",
+  "bugs": {
+    "url": "https://github.com/yourusername/rdex-dashboard/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/rdex-dashboard.git"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "web-ext": "^7.0.0"
+  }
+}

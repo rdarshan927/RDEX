@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Tab</title>
+    <link rel="stylesheet" href="css/tailwind.min.css">
+    <style>
+        body {
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('images/default-bg.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center">
+    <!-- Clock Section -->
+    <div class="text-center mb-8">
+        <div id="clock" class="text-8xl font-bold tracking-tight"></div>
+        <div id="date" class="text-2xl mt-2 opacity-90"></div>
+    </div>
+
+    <!-- Quote Section -->
+    <div class="max-w-2xl text-center mb-12 px-4">
+        <blockquote id="quote" class="text-xl italic"></blockquote>
+        <cite id="author" class="block mt-2 opacity-75"></cite>
+    </div>
+
+    <!-- Main Focus Section -->
+    <div class="text-center px-4">
+        <h2 class="text-2xl mb-4">Today's Main Focus</h2>
+        <div id="focus-input-container">
+            <input type="text" 
+                   id="focus-input"
+                   class="bg-black/30 border-b-2 border-white/50 px-4 py-2 w-96 max-w-full text-center text-xl focus:outline-none focus:border-white transition-colors"
+                   placeholder="What's your main focus for today?">
+        </div>
+        <div id="focus-display" class="hidden">
+            <label class="flex items-center justify-center gap-3 text-xl">
+                <input type="checkbox" id="focus-checkbox" class="w-5 h-5">
+                <span id="focus-text"></span>
+            </label>
+        </div>
+    </div>
+
+    <!-- Links Section -->
+    <div class="absolute bottom-8 w-full px-4">
+        <div class="flex justify-between items-center max-w-4xl mx-auto">
+            <h3 class="text-xl">Links</h3>
+            <button id="add-site-btn" 
+                    class="bg-black/30 hover:bg-black/50 p-3 rounded-full transition-colors"
+                    title="Add current site to bookmarks">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+            </button>
+        </div>
+        <ul id="links-list" class="mt-4 space-y-2">
+            <!-- Links will be dynamically added here -->
+        </ul>
+    </div>
+
+    <!-- Fallback quotes in case API is unavailable -->
+    <script src="js/fallback-quotes.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
