@@ -8,7 +8,9 @@
     "test": "web-ext lint",
     "start:firefox": "web-ext run --source-dir=./",
     "lint": "web-ext lint",
-    "package": "web-ext build"
+    "package": "web-ext build",
+    "use:chrome": "cp manifest-chrome.json manifest.json",
+    "use:firefox": "cp manifest-firefox.json manifest.json"
   },
   "keywords": [
     "webextension",
@@ -18,16 +20,19 @@
     "productivity"
   ],
   "author": "RDEX Dashboard Contributors",
-  "homepage": "https://github.com/yourusername/rdex-dashboard",
+  "homepage": "https://github.com/rdarshan927/RDEX",
   "bugs": {
-    "url": "https://github.com/yourusername/rdex-dashboard/issues"
+    "url": "https://github.com/rdarshan927/RDEX/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/rdex-dashboard.git"
+    "url": "git+https://github.com/rdarshan927/RDEX.git"
   },
   "license": "MIT",
   "devDependencies": {
     "web-ext": "^7.0.0"
+  },
+  "dependencies": {
+    "canvas": "^3.2.0"
   }
 }

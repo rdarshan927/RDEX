@@ -3,66 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Tab</title>
+    <title>New Tab (RDEX)</title>
     <link rel="stylesheet" href="css/tailwind.min.css">
-    <style>
-        body {
-            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('images/default-bg.jpg') no-repeat center center fixed;
-            background-size: cover;
-            color: white;
-            font-family: system-ui, -apple-system, sans-serif;
-        }
-    </style>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center">
-    <!-- Clock Section -->
-    <div class="text-center mb-8">
-        <div id="clock" class="text-8xl font-bold tracking-tight"></div>
-        <div id="date" class="text-2xl mt-2 opacity-90"></div>
+<body class="bg-black text-white h-screen w-screen overflow-hidden flex">
+    <!-- Background Image Container -->
+    <div id="background-container" class="fixed inset-0 z-0">
+        <div class="absolute inset-0 bg-black bg-opacity-40"></div>
     </div>
 
-    <!-- Quote Section -->
-    <div class="max-w-2xl text-center mb-12 px-4">
-        <blockquote id="quote" class="text-xl italic"></blockquote>
-        <cite id="author" class="block mt-2 opacity-75"></cite>
-    </div>
-
-    <!-- Main Focus Section -->
-    <div class="text-center px-4">
-        <h2 class="text-2xl mb-4">Today's Main Focus</h2>
-        <div id="focus-input-container">
-            <input type="text" 
-                   id="focus-input"
-                   class="bg-black/30 border-b-2 border-white/50 px-4 py-2 w-96 max-w-full text-center text-xl focus:outline-none focus:border-white transition-colors"
-                   placeholder="What's your main focus for today?">
+    <!-- Bookmark Sidebar -->
+    <div id="bookmark-sidebar" class="fixed top-0 right-0 h-full w-16 bg-black bg-opacity-30 backdrop-filter backdrop-blur-md z-10 flex flex-col items-center py-6 px-2">
+        <div id="bookmarks-container" class="flex flex-col gap-4 items-center overflow-y-auto w-full flex-grow">
+            <!-- Bookmarks will be added here dynamically -->
         </div>
-        <div id="focus-display" class="hidden">
-            <label class="flex items-center justify-center gap-3 text-xl">
-                <input type="checkbox" id="focus-checkbox" class="w-5 h-5">
-                <span id="focus-text"></span>
-            </label>
+        <button id="add-bookmark-btn" class="mt-4 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-full w-10 h-10 flex items-center justify-center transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+        </button>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="relative z-1 flex flex-col items-center justify-center w-full h-full">
+        <!-- Clock -->
+        <div id="clock" class="text-8xl font-light text-white text-center"></div>
+        <div id="date" class="text-2xl font-light text-white mt-2 mb-8"></div>
+        
+        <!-- Quote -->
+        <div id="quote-container" class="max-w-2xl px-6 py-4 text-center">
+            <p id="quote" class="text-lg italic font-light"></p>
+            <p id="author" class="mt-2 text-sm opacity-75"></p>
+        </div>
+        
+        <!-- Main Focus -->
+        <div id="focus-container" class="mt-16 max-w-md w-full px-4">
+            <h2 class="text-xl text-center mb-2">TODAY'S FOCUS</h2>
+            <div class="flex items-center">
+                <input type="text" id="focus-input" 
+                    class="bg-transparent border-b border-white text-center w-full py-2 px-4 text-white text-xl focus:outline-none focus:border-blue-300" 
+                    placeholder="What's your main focus today?">
+            </div>
         </div>
     </div>
 
-    <!-- Links Section -->
-    <div class="absolute bottom-8 w-full px-4">
-        <div class="flex justify-between items-center max-w-4xl mx-auto">
-            <h3 class="text-xl">Links</h3>
-            <button id="add-site-btn" 
-                    class="bg-black/30 hover:bg-black/50 p-3 rounded-full transition-colors"
-                    title="Add current site to bookmarks">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-            </button>
+    <!-- Modal for Adding Bookmark -->
+    <div id="bookmark-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-800 rounded-lg p-6 w-96 max-w-full">
+            <h2 class="text-xl font-semibold mb-4">Add Bookmark</h2>
+            
+            <div class="mb-4">
+                <label class="block text-sm mb-2">URL</label>
+                <input type="url" id="bookmark-url" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm mb-2">Icon URL (or choose below)</label>
+                <input type="url" id="bookmark-icon" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm mb-2">Select Icon Type</label>
+                <div class="grid grid-cols-4 gap-2 mt-2">
+                    <button class="icon-preset p-2 bg-gray-700 rounded hover:bg-gray-600" data-icon="globe">🌐</button>
+                    <button class="icon-preset p-2 bg-gray-700 rounded hover:bg-gray-600" data-icon="youtube">📺</button>
+                    <button class="icon-preset p-2 bg-gray-700 rounded hover:bg-gray-600" data-icon="mail">✉️</button>
+                    <button class="icon-preset p-2 bg-gray-700 rounded hover:bg-gray-600" data-icon="docs">📄</button>
+                    <button class="icon-preset p-2 bg-gray-700 rounded hover:bg-gray-600" data-icon="code">💻</button>
+                    <button class="icon-preset p-2 bg-gray-700 rounded hover:bg-gray-600" data-icon="calendar">📅</button>
+                    <button class="icon-preset p-2 bg-gray-700 rounded hover:bg-gray-600" data-icon="music">🎵</button>
+                    <button class="icon-preset p-2 bg-gray-700 rounded hover:bg-gray-600" data-icon="social">👥</button>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-2 mt-6">
+                <button id="bookmark-modal-cancel" class="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600">Cancel</button>
+                <button id="bookmark-modal-save" class="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500">Save</button>
+            </div>
         </div>
-        <ul id="links-list" class="mt-4 space-y-2">
-            <!-- Links will be dynamically added here -->
-        </ul>
     </div>
 
-    <!-- Fallback quotes in case API is unavailable -->
+    <!-- Wallpaper Settings Button -->
+    <button id="wallpaper-settings-btn" class="fixed bottom-6 left-6 bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-full w-10 h-10 flex items-center justify-center transition-all z-20">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+    </button>
+
+    <!-- Modal for Wallpaper Settings -->
+    <div id="wallpaper-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-800 rounded-lg p-6 w-4/5 max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Background Wallpaper</h2>
+                <button id="wallpaper-modal-close" class="text-gray-400 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="text-lg mb-2">Upload Image</h3>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="flex-grow">
+                        <label class="block mb-2 text-sm">Select image from your device</label>
+                        <input type="file" id="wallpaper-file-input" accept="image/*" class="block w-full text-sm text-gray-400
+                            file:mr-4 file:py-2 file:px-4 file:rounded file:border-0
+                            file:text-sm file:font-semibold file:bg-blue-600 file:text-white
+                            hover:file:bg-blue-500 cursor-pointer">
+                    </div>
+                    <button id="wallpaper-upload-btn" class="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500 mt-2 sm:mt-auto">Upload</button>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="text-lg mb-2">Image URL</h3>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <input type="url" id="wallpaper-url-input" placeholder="https://example.com/image.jpg" 
+                        class="flex-grow bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button id="wallpaper-url-btn" class="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500 mt-2 sm:mt-0">Set</button>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-lg mb-2">Preset Backgrounds</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3" id="wallpaper-presets">
+                    <!-- Presets will be added dynamically -->
+                    <div class="relative aspect-video bg-cover bg-center rounded cursor-pointer overflow-hidden group wallpaper-preset" 
+                        data-wallpaper="default" style="background-image: url('images/default-bg.jpg')">
+                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all"></div>
+                    </div>
+                    <!-- More presets here -->
+                </div>
+            </div>
+            
+            <div class="mt-6 pt-4 border-t border-gray-700">
+                <button id="wallpaper-reset-btn" class="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600">Reset to Default</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Make sure all scripts load in the correct order -->
+    <script src="js/storage.js"></script>
     <script src="js/fallback-quotes.js"></script>
+    <script src="js/clock.js"></script>
+    <script src="js/background-service.js"></script>
+    <script src="js/quotes.js"></script>
+    <script src="js/focus.js"></script>
+    <script src="js/bookmarks.js"></script>
+    <script src="js/background-manager.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
