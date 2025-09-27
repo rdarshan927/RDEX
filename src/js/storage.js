@@ -61,13 +61,37 @@ class Storage {
   }
 }
 
-// Storage keys
-const STORAGE_KEYS = {
-  FOCUS: 'rdex_focus',
-  FOCUS_COMPLETED: 'rdex_focus_completed',
-  LINKS: 'rdex_links',
-  LAST_QUOTE_DATE: 'rdex_last_quote_date',
-  CURRENT_QUOTE: 'rdex_current_quote',
-  LAST_BACKGROUND_DATE: 'rdex_last_bg_date',
-  CURRENT_BACKGROUND: 'rdex_current_bg'
-};
+// In storage.js - declare the global variable
+// Make sure STORAGE_KEYS is defined only once and globally
+
+// Check if STORAGE_KEYS already exists
+if (!window.STORAGE_KEYS) {
+  window.STORAGE_KEYS = {
+    FOCUS: 'rdex_focus',
+    FOCUS_COMPLETED: 'rdex_focus_completed',
+    LINKS: 'rdex_links',
+    LAST_QUOTE_DATE: 'rdex_last_quote_date',
+    CURRENT_QUOTE: 'rdex_current_quote',
+    LAST_BACKGROUND_DATE: 'rdex_last_bg_date',
+    CURRENT_BACKGROUND: 'rdex_current_bg',
+    BOOKMARKS: 'rdex_bookmarks'
+  };
+}
+
+// Add simple debounce helper for expensive saves
+window.__rdex_debounceMap = window.__rdex_debounceMap || new Map();
+
+function debouncedSet(key, value, delay = 500) {
+  if (window.__rdex_debounceMap.has(key)) {
+    clearTimeout(window.__rdex_debounceMap.get(key));
+  }
+  const t = setTimeout(() => {
+    browser.storage.local.set({ [key]: value }).catch(e => {
+      console.error('storage set failed', e);
+    });
+    window.__rdex_debounceMap.delete(key);
+  }, delay);
+  window.__rdex_debounceMap.set(key, t);
+}
+
+// Use debouncedSet instead of browser.storage.local.set for frequent saves (bookmarks, focus, wallpaper)
