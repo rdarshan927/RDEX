@@ -1,70 +1,106 @@
 /* Daily quotes functionality for RDEX Dashboard */
 
 /**
+ * Quotes functionality
+ */
+
+let quoteEl = null;
+let authorEl = null;
+
+/**
  * Fetches a random quote from the Quotable API
  * @returns {Promise<Object>} - Quote object with content and author
  */
 async function fetchRandomQuote() {
   try {
-    const response = await fetch('https://api.quotable.io/random');
-    if (!response.ok) {
-      throw new Error(`Failed to fetch quote: ${response.status}`);
-    }
+    const controller = new AbortController();
+    // Set a 5 second timeout for fetch
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
+    const response = await fetch("https://api.quotable.io/random", {
+      method: "GET",
+      headers: {
+        "Accept": "application/json"
+      },
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     
     const data = await response.json();
     return {
-      content: data.content,
-      author: data.author
+      text: data.content,
+      author: data.author,
+      isFallback: false
     };
   } catch (error) {
-    console.error('Error fetching quote:', error);
-    // Return a fallback quote
-    return {
-      content: "The future depends on what you do today.",
-      author: "Mahatma Gandhi"
-    };
+    console.log("Error fetching quote:", error);
+    // Get a fallback quote and mark it as such
+    const fallback = getFallbackQuote();
+    fallback.isFallback = true;
+    return fallback;
   }
 }
 
-/**
- * Checks if we need a new quote for today
- * @returns {boolean} - True if we need a new quote
- */
-function needsNewQuote() {
-  const today = new Date().toDateString();
-  const lastQuoteDate = Storage.getData(STORAGE_KEYS.LAST_QUOTE_DATE, '');
-  return lastQuoteDate !== today;
+// Add this function in quotes.js
+function getFallbackQuote() {
+  // Use fallback quotes from fallback-quotes.js if available
+  if (window.fallbackQuotes && window.fallbackQuotes.length > 0) {
+    const randomIndex = Math.floor(Math.random() * window.fallbackQuotes.length);
+    return window.fallbackQuotes[randomIndex];
+  }
+  
+  // Ultimate fallback
+  return {
+    text: "The best way to predict the future is to invent it.",
+    author: "Alan Kay"
+  };
 }
 
 /**
  * Updates the quote on the page
  */
 async function updateQuote() {
+  // Store local references to elements to avoid null issues
   const quoteElement = document.getElementById('quote');
-  const authorElement = document.getElementById('quote-author');
+  const authorElement = document.getElementById('author');
   
-  if (needsNewQuote()) {
-    // Fetch new quote
-    const quote = await fetchRandomQuote();
-    
-    // Save to localStorage
-    Storage.saveData(STORAGE_KEYS.CURRENT_QUOTE, quote);
-    Storage.saveData(STORAGE_KEYS.LAST_QUOTE_DATE, new Date().toDateString());
-    
-    // Update UI
-    quoteElement.textContent = `"${quote.content}"`;
-    authorElement.textContent = quote.author;
-  } else {
-    // Use existing quote from localStorage
-    const quote = Storage.getData(STORAGE_KEYS.CURRENT_QUOTE, {
-      content: "The future depends on what you do today.",
-      author: "Mahatma Gandhi"
-    });
-    
-    quoteElement.textContent = `"${quote.content}"`;
-    authorElement.textContent = quote.author;
+  if (!quoteElement || !authorElement) {
+    console.error("Quote elements not found");
+    return;
   }
+  
+  // Display a fallback quote immediately
+  const fallback = getFallbackQuote();
+  quoteElement.textContent = fallback.text;
+  authorElement.textContent = `— ${fallback.author}`;
+  
+  // Then try to fetch a quote from API, but don't await it
+  fetchRandomQuote().then(quote => {
+    // Only update if fetch actually succeeded and didn't return a fallback
+    if (quote && !quote.isFallback) {
+      quoteElement.textContent = quote.text;
+      authorElement.textContent = `— ${quote.author}`;
+    }
+  }).catch(err => {
+    // Already showing fallback, so just log the error
+    console.log("Quote fetch failed, using fallback:", err);
+  });
 }
 
 // Update quote when page loads
 document.addEventListener('DOMContentLoaded', updateQuote);
+
+function initQuote(quoteElement, authorElement) {
+  // Store elements
+  quoteEl = quoteElement;
+  authorEl = authorElement;
+  
+  // Update quote immediately
+  updateQuote();
+}
+
+// Make the initialization function available globally
+window.initQuote = initQuote;

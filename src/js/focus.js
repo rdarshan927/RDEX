@@ -1,100 +1,94 @@
 /* Focus functionality for RDEX Dashboard */
 
 // DOM Elements
-const focusInput = document.getElementById('focus-input');
-const focusInputContainer = document.getElementById('focus-input-container');
-const focusDisplay = document.getElementById('focus-display');
-const focusText = document.getElementById('focus-text');
-const focusCheckbox = document.getElementById('focus-checkbox');
-const focusEditBtn = document.getElementById('focus-edit-btn');
+let focusInput = null;
+let focusContainer = null;
 
 /**
  * Initializes the focus section
  */
-function initFocus() {
-  const savedFocus = Storage.getData(STORAGE_KEYS.FOCUS);
-  const isCompleted = Storage.getData(STORAGE_KEYS.FOCUS_COMPLETED, false);
+function initFocus(inputElement) {
+  console.log("Initializing focus with:", inputElement);
   
-  if (savedFocus) {
-    // Show saved focus
-    showFocus(savedFocus, isCompleted);
-  } else {
-    // Show input for new focus
+  focusInput = inputElement;
+  focusContainer = document.getElementById('focus-container');
+  
+  if (!focusInput) {
+    console.error("Focus input element not found");
+    return;
+  }
+  
+  // Load saved focus
+  loadFocus();
+  
+  // Set up event listeners
+  focusInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      saveFocus();
+    }
+  });
+  
+  focusInput.addEventListener('blur', saveFocus);
+}
+
+// Load focus from storage
+async function loadFocus() {
+  if (!focusInput) return;
+  
+  try {
+    const data = await browser.storage.local.get(window.STORAGE_KEYS.FOCUS);
+    if (data && data[window.STORAGE_KEYS.FOCUS]) {
+      focusInput.value = data[window.STORAGE_KEYS.FOCUS];
+      showFocusCompleted();
+    } else {
+      showFocusInput();
+    }
+  } catch (error) {
+    console.error("Error loading focus:", error);
     showFocusInput();
   }
-  
-  // Event listeners
-  focusInput.addEventListener('keypress', handleFocusInput);
-  focusCheckbox.addEventListener('change', handleFocusCompletion);
-  focusEditBtn.addEventListener('click', handleFocusEdit);
 }
 
-/**
- * Handles focus input submission
- * @param {Event} e - Keyboard event
- */
-function handleFocusInput(e) {
-  if (e.key === 'Enter' && focusInput.value.trim() !== '') {
-    const focus = focusInput.value.trim();
-    Storage.saveData(STORAGE_KEYS.FOCUS, focus);
-    Storage.saveData(STORAGE_KEYS.FOCUS_COMPLETED, false);
-    showFocus(focus, false);
+// Save focus to storage
+async function saveFocus() {
+  if (!focusInput) return;
+  
+  const focus = focusInput.value.trim();
+  
+  try {
+    await browser.storage.local.set({ 
+      [window.STORAGE_KEYS.FOCUS]: focus 
+    });
+    
+    if (focus) {
+      showFocusCompleted();
+    } else {
+      showFocusInput();
+    }
+  } catch (error) {
+    console.error("Error saving focus:", error);
   }
 }
 
-/**
- * Displays the saved focus
- * @param {string} focus - The focus text
- * @param {boolean} isCompleted - Whether the focus is completed
- */
-function showFocus(focus, isCompleted) {
-  focusText.textContent = focus;
-  focusCheckbox.checked = isCompleted;
-  
-  // Apply strikethrough if completed
-  if (isCompleted) {
-    focusText.classList.add('line-through', 'opacity-50');
-  } else {
-    focusText.classList.remove('line-through', 'opacity-50');
-  }
-  
-  // Show display and hide input
-  focusDisplay.classList.remove('hidden');
-  focusInputContainer.classList.add('hidden');
-}
-
-/**
- * Shows the focus input field
- */
+// Show focus input UI
 function showFocusInput() {
-  focusInput.value = '';
-  focusDisplay.classList.add('hidden');
-  focusInputContainer.classList.remove('hidden');
-  focusInput.focus();
-}
-
-/**
- * Handles focus completion checkbox
- */
-function handleFocusCompletion() {
-  const isCompleted = focusCheckbox.checked;
-  Storage.saveData(STORAGE_KEYS.FOCUS_COMPLETED, isCompleted);
-  
-  if (isCompleted) {
-    focusText.classList.add('line-through', 'opacity-50');
-  } else {
-    focusText.classList.remove('line-through', 'opacity-50');
+  if (focusContainer) {
+    focusContainer.classList.add('active');
   }
 }
 
-/**
- * Handles editing the current focus
- */
-function handleFocusEdit() {
-  const currentFocus = Storage.getData(STORAGE_KEYS.FOCUS, '');
-  focusInput.value = currentFocus;
-  showFocusInput();
+// Show completed focus UI
+function showFocusCompleted() {
+  if (focusContainer) {
+    focusContainer.classList.add('completed');
+  }
 }
+
+// Make the function available globally
+window.initFocus = initFocus;
 
 // Initialize focus feature when DOM is loaded
-document.addEventListener('DOMContentLoaded', initFocus);
+document.addEventListener('DOMContentLoaded', () => {
+  const inputElement = document.getElementById('focus-input');
+  initFocus(inputElement);
+});
