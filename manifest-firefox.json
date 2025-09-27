@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "RDEX Dashboard",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "description": "A minimalist new tab dashboard with modern UI",
   "icons": {
     "16": "icons/icon16.png",
@@ -34,7 +34,7 @@
   },
   "applications": {
     "gecko": {
-      "id": "rdex@rd927.com",
+      "id": "rdex@example.com",
       "strict_min_version": "109.0"
     }
   }

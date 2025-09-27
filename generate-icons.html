@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Generate Extension Icons</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    canvas { border: 1px solid #ccc; margin: 10px; }
+    .download-links { margin: 20px 0; }
+    a { display: block; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>Generate RDEX Extension Icons</h1>
+  
+  <div>
+    <canvas id="icon16" width="16" height="16"></canvas>
+    <canvas id="icon48" width="48" height="48"></canvas>
+    <canvas id="icon128" width="128" height="128"></canvas>
+  </div>
+  
+  <div class="download-links">
+    <a id="download16" download="icon16.png">Download 16x16 icon</a>
+    <a id="download48" download="icon48.png">Download 48x48 icon</a>
+    <a id="download128" download="icon128.png">Download 128x128 icon</a>
+  </div>
+
+  <script>
+    function drawIcon(canvas, size) {
+      const ctx = canvas.getContext('2d');
+      
+      // Background
+      const gradient = ctx.createLinearGradient(0, 0, size, size);
+      gradient.addColorStop(0, '#3B82F6');  // Blue
+      gradient.addColorStop(1, '#8B5CF6');  // Purple
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, size, size);
+      
+      // Add "R" letter
+      ctx.fillStyle = 'white';
+      ctx.font = `bold ${Math.floor(size * 0.7)}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('R', size/2, size/2);
+      
+      // Add border
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+      ctx.lineWidth = Math.max(1, Math.floor(size/20));
+      ctx.strokeRect(0, 0, size, size);
+      
+      // Set download link
+      const downloadLink = document.getElementById(`download${size}`);
+      downloadLink.href = canvas.toDataURL('image/png');
+    }
+
+    // Draw icons of different sizes
+    drawIcon(document.getElementById('icon16'), 16);
+    drawIcon(document.getElementById('icon48'), 48);
+    drawIcon(document.getElementById('icon128'), 128);
+  </script>
+</body>
+</html>
