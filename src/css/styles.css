@@ -53,6 +53,12 @@ body {
   text-shadow: 0 1px 5px rgba(0, 0, 0, 0.3);
 }
 
+/* Weather display next to clock */
+#weather {
+  text-shadow: 0 1px 5px rgba(0,0,0,0.3);
+  opacity: 0.9;
+}
+
 /* Quote container */
 #quote-container {
   background: rgba(0, 0, 0, 0.2);
@@ -85,6 +91,16 @@ body {
 }
 
 #bookmark-modal.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Location modal styling */
+#location-modal {
+  transition: opacity 0.2s ease;
+}
+
+#location-modal.hidden {
   opacity: 0;
   pointer-events: none;
 }

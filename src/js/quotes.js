@@ -13,28 +13,24 @@ let authorEl = null;
  */
 async function fetchRandomQuote() {
   try {
-    const controller = new AbortController();
-    // Set a 5 second timeout for fetch
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-    
-    const response = await fetch("https://api.quotable.io/random", {
-      method: "GET",
-      headers: {
-        "Accept": "application/json"
-      },
-      signal: controller.signal
-    });
-    
-    clearTimeout(timeoutId);
-    
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    
-    const data = await response.json();
-    return {
-      text: data.content,
-      author: data.author,
-      isFallback: false
-    };
+    // Cross-browser runtime.sendMessage wrapper
+    function runtimeSendMessage(message) {
+      if (typeof browser !== 'undefined') return browser.runtime.sendMessage(message);
+      return new Promise((resolve, reject) => {
+        try {
+          chrome.runtime.sendMessage(message, (resp) => {
+            if (chrome.runtime.lastError) return reject(chrome.runtime.lastError);
+            resolve(resp);
+          });
+        } catch (err) {
+          reject(err);
+        }
+      });
+    }
+
+    const resp = await runtimeSendMessage({ action: 'fetchQuote' });
+    if (!resp || resp.error) throw new Error(resp && resp.error ? resp.error : 'No quote');
+    return { text: resp.text, author: resp.author, isFallback: false };
   } catch (error) {
     console.log("Error fetching quote:", error);
     // Get a fallback quote and mark it as such

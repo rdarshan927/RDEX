@@ -29,7 +29,13 @@
     <div class="relative z-1 flex flex-col items-center justify-center w-full h-full">
         <!-- Clock -->
         <div id="clock" class="text-8xl font-light text-white text-center"></div>
-        <div id="date" class="text-2xl font-light text-white mt-2 mb-8"></div>
+                <div class="flex items-center justify-center mt-2">
+                    <div id="date" class="text-2xl font-light text-white"></div>
+                </div>
+                <div class="flex items-center justify-center mt-2 mb-8 gap-2">
+                    <div id="weather" class="text-xl font-light text-white"></div>
+                    <button id="location-btn" aria-label="Set location" class="text-white bg-white bg-opacity-10 hover:bg-opacity-20 rounded px-3 py-1">⚙️</button>
+                </div>
         
         <!-- Quote -->
         <div id="quote-container" class="max-w-2xl px-6 py-4 text-center">
@@ -143,6 +149,26 @@
             </div>
         </div>
     </div>
+
+        <!-- Modal for Location Settings -->
+        <div id="location-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-gray-800 rounded-lg p-6 w-96 max-w-full">
+                <h2 class="text-xl font-semibold mb-4">Set Location</h2>
+
+                <div class="mb-4">
+                    <label class="block text-sm mb-2">Enter city or address</label>
+                    <input type="text" id="location-input" placeholder="e.g. Colombo, Sri Lanka" class="w-full bg-gray-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="flex justify-between items-center gap-2">
+                    <button id="location-use-geolocation" class="px-3 py-2 bg-gray-700 rounded hover:bg-gray-600">Use my location</button>
+                    <div class="flex gap-2">
+                        <button id="location-modal-cancel" class="px-3 py-2 bg-gray-700 rounded hover:bg-gray-600">Cancel</button>
+                        <button id="location-modal-save" class="px-3 py-2 bg-blue-600 rounded hover:bg-blue-500">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     <!-- Make sure all scripts load in the correct order -->
     <script src="js/storage.js"></script>

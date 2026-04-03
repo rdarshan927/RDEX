@@ -46,6 +46,140 @@ function setupMessageHandlers() {
       getCurrentTabInfo().then(sendResponse);
       return true; // Required for async response
     }
+    else if (message.action === 'ipLookup') {
+      // Return { lat, lon, city } or { error }
+      (async () => {
+        // Try multiple providers then return a safe fallback if all fail
+        const fallback = { lat: 40.7128, lon: -74.0060, city: 'New York' };
+        try {
+          // 1) try ip-api.com
+          try {
+            const r1 = await fetch('https://ip-api.com/json/?fields=status,message,country,regionName,city,lat,lon');
+            if (r1.ok) {
+              const d1 = await r1.json();
+              if (d1 && d1.status === 'success') {
+                return sendResponse({ lat: d1.lat, lon: d1.lon, city: d1.city || d1.regionName || d1.country });
+              }
+            }
+          } catch (e) {
+            console.warn('ip-api attempt failed', e);
+          }
+
+          // 2) try ipwho.is
+          try {
+            const r2 = await fetch('https://ipwho.is/json/');
+            if (r2.ok) {
+              const d2 = await r2.json();
+              if (d2 && d2.success !== false) {
+                return sendResponse({ lat: d2.latitude, lon: d2.longitude, city: d2.city || d2.region || d2.country });
+              }
+            }
+          } catch (e) {
+            console.warn('ipwho attempt failed', e);
+          }
+
+          // 3) try ipinfo.io
+          try {
+            const r3 = await fetch('https://ipinfo.io/json?token=');
+            if (r3.ok) {
+              const d3 = await r3.json();
+              if (d3 && d3.loc) {
+                const [lat, lon] = d3.loc.split(',');
+                return sendResponse({ lat: parseFloat(lat), lon: parseFloat(lon), city: d3.city || d3.region || d3.country });
+              }
+            }
+          } catch (e) {
+            console.warn('ipinfo attempt failed', e);
+          }
+
+          // If all providers failed, return a fallback location rather than an outright error
+          console.warn('All IP lookup providers failed, returning fallback');
+          sendResponse({ error: 'ipLookup failed', fallback });
+        } catch (err) {
+          console.warn('background ipLookup error', err);
+          sendResponse({ error: String(err), fallback });
+        }
+      })();
+      return true;
+    }
+    else if (message.action === 'reverseGeocode') {
+      const { lat, lon } = message;
+      (async () => {
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`);
+          if (!res.ok) throw new Error('reverseGeocode failed');
+          const data = await res.json();
+          const address = data.address || {};
+          const name = address.city || address.town || address.village || data.display_name || '';
+          sendResponse({ name });
+        } catch (err) {
+          console.warn('background reverseGeocode error', err);
+          sendResponse({ error: String(err) });
+        }
+      })();
+      return true;
+    }
+    else if (message.action === 'forwardGeocode') {
+      const { q } = message;
+      (async () => {
+        try {
+          if (!q || typeof q !== 'string') throw new Error('Invalid query');
+          const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(q)}&limit=1`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error('forwardGeocode failed');
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            const item = data[0];
+            return sendResponse({ lat: parseFloat(item.lat), lon: parseFloat(item.lon), name: item.display_name });
+          }
+          sendResponse({ error: 'No results' });
+        } catch (err) {
+          console.warn('background forwardGeocode error', err);
+          sendResponse({ error: String(err) });
+        }
+      })();
+      return true;
+    }
+    else if (message.action === 'fetchWeather') {
+      const { lat, lon } = message;
+      (async () => {
+        try {
+          const url = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&current_weather=true&timezone=auto`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error('fetchWeather failed');
+          const data = await res.json();
+          if (!data || !data.current_weather) throw new Error('No weather data');
+          sendResponse({ temperature: data.current_weather.temperature, weathercode: data.current_weather.weathercode });
+        } catch (err) {
+          console.warn('background fetchWeather error', err);
+          sendResponse({ error: String(err) });
+        }
+      })();
+      return true;
+    }
+    else if (message.action === 'fetchQuote') {
+      (async () => {
+        try {
+          const res = await fetch('https://api.quotable.io/random');
+          if (res && res.ok) {
+            const data = await res.json();
+            return sendResponse({ text: data.content, author: data.author });
+          }
+        } catch (err) {
+          console.warn('background fetchQuote attempt failed', err);
+        }
+
+        // If network fetching fails, return a small built-in fallback quote
+        const fallbackQuotes = [
+          { text: 'The best way to predict the future is to invent it.', author: 'Alan Kay' },
+          { text: 'Simplicity is the soul of efficiency.', author: 'Austin Freeman' },
+          { text: 'Action is the foundational key to all success.', author: 'Pablo Picasso' }
+        ];
+        const q = fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
+        sendResponse({ text: q.text, author: q.author });
+      })();
+      return true;
+    }
   });
 }
 
